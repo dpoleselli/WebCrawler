@@ -1,3 +1,10 @@
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
 import edu.uci.ics.crawler4j.crawler.CrawlConfig;
 import edu.uci.ics.crawler4j.crawler.CrawlController;
 import edu.uci.ics.crawler4j.fetcher.PageFetcher;
@@ -34,6 +41,59 @@ public class MyController {
         // will reach the line after this only when crawling is finished.
         controller.start(factory, numberOfCrawlers);
         
+        List<Object> crawlersLocalData = controller.getCrawlersLocalData();
+        long totalLinks = 0;
+        int totalProcessedPages = 0;
+        String longestPage = "";
+        int longestPageLength = 0;
+        Map<String, Integer> wordCount = new HashMap<>();
+        
+        //loop through the data of each crawler
+        for (Object localData : crawlersLocalData) {
+            Data stat = (Data) localData;
+            totalLinks += stat.getLinks();
+            totalProcessedPages += stat.getPages();
+            
+            String longest = stat.getLongestPage();
+            if(longest != null && !longest.isEmpty()) {
+            	String[] arr = longest.split(":");
+            	//check if there is a new longest page
+            	if(Integer.parseInt(arr[1]) > longestPageLength) {
+            		longestPageLength = Integer.parseInt(arr[1]);
+            		longestPage = arr[0];
+            	}
+            }
+            
+            //determine word counts
+            Map<String, Integer> words = stat.getWordCount();
+            for(String word : words.keySet()) {
+            	if(wordCount.containsKey(word)) {
+					wordCount.put(word, wordCount.get(word) + words.get(word));
+				}
+				else {
+					wordCount.put(word, words.get(word));
+				}
+            }
+        }
+        
+        //sorting algorithm from https://www.baeldung.com/java-hashmap-sort
+        Map<String, Integer> result = wordCount.entrySet()
+        		  .stream()
+        		  .sorted(Map.Entry.comparingByValue(Comparator.reverseOrder()))
+        		  .collect(Collectors.toMap(
+        		    Map.Entry::getKey, 
+        		    Map.Entry::getValue, 
+        		    (oldValue, newValue) -> oldValue, LinkedHashMap::new));
+        
+        int count = 0;
+        System.out.println("Top 25 words:");
+        for(String key : result.keySet()) {
+        	System.out.println(key + " (" + result.get(key) + ")");
+        	if(count == 24) {
+        		break;
+        	}
+        	count++;
+        }
         
         System.out.println("Total time(sec): " + (System.currentTimeMillis() - time)/1000);
     }

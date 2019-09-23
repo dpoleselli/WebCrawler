@@ -1,5 +1,9 @@
+import java.util.Comparator;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import edu.uci.ics.crawler4j.crawler.Page;
 import edu.uci.ics.crawler4j.crawler.WebCrawler;
@@ -48,15 +52,35 @@ public class MyCrawler extends WebCrawler {
 			String text = htmlParseData.getText();
 			Set<WebURL> links = htmlParseData.getOutgoingUrls();
 			
+			text = text.replaceAll("\\p{Punct}","");
+			
 			myData.incLinks(links.size());
 			myData.processText(url, text);
 			myData.incPages();
 
 			// We dump this crawler statistics after processing every 50 pages
-	        if ((myData.getPages() % 3) == 0) {
+	        if ((myData.getPages() % 5) == 0) {
 	            System.out.println("Pages: " + myData.getPages());
 	            System.out.println("Links: " + myData.getLinks());
 	            System.out.println("Longest: " + myData.getLongestPage());
+	            
+	            Map<String, Integer> result = myData.getWordCount().entrySet()
+	          		  .stream()
+	          		  .sorted(Map.Entry.comparingByValue(Comparator.reverseOrder()))
+	          		  .collect(Collectors.toMap(
+	          		    Map.Entry::getKey, 
+	          		    Map.Entry::getValue, 
+	          		    (oldValue, newValue) -> oldValue, LinkedHashMap::new));
+	          
+	          int count = 0;
+	          System.out.println("Top 25 words:");
+	          for(String key : result.keySet()) {
+	          	System.out.println(key + " (" + result.get(key) + ")");
+	          	if(count == 24) {
+	          		break;
+	          	}
+	          	count++;
+	          }
 	        }
 		}
 	}
