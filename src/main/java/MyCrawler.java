@@ -53,6 +53,7 @@ public class MyCrawler extends WebCrawler {
 			Set<WebURL> links = htmlParseData.getOutgoingUrls();
 			
 			text = text.replaceAll("\\p{Punct}","");
+			text = text.replaceAll("\\d","");
 			
 			myData.incLinks(links.size());
 			myData.processText(url, text);

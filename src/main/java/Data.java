@@ -188,6 +188,7 @@ public class Data {
 	};
 
 	private Set<String> STOPWORDS = new HashSet<String>(Arrays.asList(STOP));
+	private Map<String, Map<String, NGram>> gram = new HashMap<>();
 
 	//return the longest page with its length
 	public String getLongestPage() {
@@ -210,7 +211,9 @@ public class Data {
 
 		String[] words = text.split("\\s+");
 		checkLongestPage(url, words.length);
-
+		
+		String prev = "";
+		
 		//loop through each word in the page
 		for(String word : words) {
 			word = word.toLowerCase();
@@ -221,6 +224,20 @@ public class Data {
 				}
 				else {
 					wordCount.put(word, 1);
+				}
+				
+				if(gram.containsKey(prev)) {
+					if(gram.get(prev).containsKey(word)) {
+						gram.get(prev).get(word).incCount(wordCount.get(prev));
+					}
+					else {
+						gram.get(prev).put(word, new NGram(wordCount.get(prev)));
+					}
+				}
+				else {
+					Map<String, NGram> temp = new HashMap<>();
+					temp.put(word, new NGram(wordCount.get(prev)));
+					gram.put(prev, temp);
 				}
 			}
 		}
