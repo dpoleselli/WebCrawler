@@ -4,6 +4,8 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import edu.uci.ics.crawler4j.url.WebURL;
+
 public class Data {
 	private int pages;
 	private long links;
@@ -188,19 +190,13 @@ public class Data {
 	};
 
 	private Set<String> STOPWORDS = new HashSet<String>(Arrays.asList(STOP));
-	private Map<String, Map<String, NGram>> gram = new HashMap<>();
+	private Map<String, Integer> gram = new HashMap<>();
+	private Set<String> banksoopy = new HashSet<>();
 
-	//return the longest page with its length
-	public String getLongestPage() {
-		return longestPage + ':' + longestPageLength;
-	}
-
-	//check if a new page is the longest and update values in necessary
-	public void checkLongestPage(String page, int length) {
-		if(length > longestPageLength) {
-			this.longestPageLength = length;
-			this.longestPage = page;
-		}
+	public void process(String url, String text, Set<WebURL> links) {
+		this.links += links.size();
+		this.pages++;
+		processText(url, text);
 	}
 
 	//check the length and handle word processing
@@ -211,9 +207,9 @@ public class Data {
 
 		String[] words = text.split("\\s+");
 		checkLongestPage(url, words.length);
-		
+
 		String prev = "";
-		
+
 		//loop through each word in the page
 		for(String word : words) {
 			word = word.toLowerCase();
@@ -225,24 +221,53 @@ public class Data {
 				else {
 					wordCount.put(word, 1);
 				}
-				
-				if(gram.containsKey(prev)) {
-					if(gram.get(prev).containsKey(word)) {
-						gram.get(prev).get(word).incCount(wordCount.get(prev));
+
+				if(prev != "") {
+					//check if the previous word is in the map
+					if(this.gram.containsKey(prev + " " + word)) {
+						this.gram.put(prev + " " + word, this.gram.get(prev + " " + word) + 1);
 					}
 					else {
-						gram.get(prev).put(word, new NGram(wordCount.get(prev)));
+						this.gram.put(prev + " " + word, 1);
 					}
 				}
-				else {
-					Map<String, NGram> temp = new HashMap<>();
-					temp.put(word, new NGram(wordCount.get(prev)));
-					gram.put(prev, temp);
+
+				if(prev.equals("banksoopy") && word.equals("brickle")) {
+					banksoopy.add(url);
 				}
+				
+				prev = word;
+			}
+			else {
+				prev = "";
 			}
 		}
 	}
+
 	
+	//get the two gram counts
+	public Map<String, Integer> getGram() {
+		return this.gram;
+	}
+	
+	//return the longest page with its length
+	public String getLongestPage() {
+		return longestPage + ":;:" + longestPageLength;
+	}
+
+	//check if a new page is the longest and update values in necessary
+	public void checkLongestPage(String page, int length) {
+		if(length > longestPageLength) {
+			this.longestPageLength = length;
+			this.longestPage = page;
+		}
+	}
+
+	//get the pages with 'banksoopy brickle'
+	public Set<String> getBanksoopy() {
+		return this.banksoopy;
+	}
+
 	//get the word count map
 	public Map<String, Integer> getWordCount() {
 		return this.wordCount;
@@ -253,28 +278,8 @@ public class Data {
 		return pages;
 	}
 
-	//set the number of processed pages
-	public void setPages(int pages) {
-		this.pages = pages;
-	}
-
-	//increment the number of processed pages by one
-	public void incPages() {
-		this.pages++;
-	}
-
 	//get the number of links
 	public long getLinks() {
 		return links;
-	}
-
-	//set the number of links
-	public void setLinks(long links) {
-		this.links = links;
-	}
-
-	//increment the number of links by some number
-	public void incLinks(int count) {
-		this.links += count;
 	}
 }
