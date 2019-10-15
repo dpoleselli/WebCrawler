@@ -22,7 +22,7 @@ public class MyController {
 		CrawlConfig config = new CrawlConfig();
 		config.setCrawlStorageFolder(crawlStorageFolder);
 		config.setPolitenessDelay(100);
-		config.setUserAgentString("Westmont IR Dante Poleselli: Team Dante P.");
+		config.setUserAgentString(args[0]);
 
 		// Instantiate the controller for this crawl.
 		PageFetcher pageFetcher = new PageFetcher(config);
@@ -33,7 +33,7 @@ public class MyController {
 		// For each crawl, you need to add some seed urls. These are the first
 		// URLs that are fetched and then the crawler starts following links
 		// which are found in these pages
-		controller.addSeed("http://djp3.westmont.edu/classes/2019_08_CS128/Bible/bible.html");
+		controller.addSeed(args[1]);
 
 
 		// The factory which creates instances of crawlers.
