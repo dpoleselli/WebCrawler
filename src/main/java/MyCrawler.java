@@ -59,8 +59,8 @@ public class MyCrawler extends WebCrawler {
 
 
 			// We dump this crawler statistics after processing every 50 pages
-			if ((myData.getPages() % 3) == 0) {
-				//dumpData();
+			if ((myData.getPages() % 50) == 0) {
+				dumpData();
 			}
 		}
 	}
